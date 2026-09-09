@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Défi Tame — ARK Survival Evolved</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oxanium:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #060E12;
+    --bg-panel: rgba(11, 34, 41, 0.85);
+    --bg-card: rgba(9, 28, 34, 0.9);
+    --cyan: #5FE3EF;
+    --cyan-bright: #9FF6FF;
+    --cyan-dim: #2E7784;
+    --cyan-faint: rgba(95, 227, 239, 0.18);
+    --moss: #6FE39A;
+    --ember: #E85B4F;
+    --metal: #123640;
+    --metal-light: #1D4E5B;
+    --gold: #5FE3EF;
+    --bone: #C9F3F7;
+    --bone-dim: #5F9AA3;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at top, rgba(95,227,239,0.10), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(95,227,239,0.02) 0px, rgba(95,227,239,0.02) 1px, transparent 1px, transparent 3px);
+    color: var(--bone);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 4rem;
+  }
+
+  .top-bar {
+    background: linear-gradient(180deg, rgba(11,34,41,0.95) 0%, rgba(6,14,18,0.95) 100%);
+    border-bottom: 1px solid var(--cyan-dim);
+    box-shadow: 0 1px 12px rgba(95,227,239,0.15);
+    padding: 1.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .top-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent 0%, rgba(95,227,239,0.08) 50%, transparent 100%);
+    pointer-events: none;
+  }
+  .top-bar::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  h1 {
+    font-family: 'Oxanium', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--bone);
+    text-shadow: 0 0 14px rgba(95,227,239,0.5);
+  }
+  h1 span { color: var(--cyan-bright); }
+
+  .subtitle {
+    font-size: 0.8rem;
+    color: var(--bone-dim);
+    margin-top: 0.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .progress-block {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--cyan-dim);
+    padding: 0.6rem 1rem;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+
+  .progress-ring-wrap { position: relative; width: 68px; height: 68px; flex-shrink: 0; }
+  .progress-ring-wrap svg { transform: rotate(-90deg); filter: drop-shadow(0 0 4px rgba(95,227,239,0.4)); }
+  .progress-ring-bg { fill: none; stroke: var(--metal-light); stroke-width: 6; }
+  .progress-ring-fg { fill: none; stroke: var(--cyan); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+  .progress-ring-label {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Oxanium', sans-serif; font-weight: 600; font-size: 1rem;
+    color: var(--cyan-bright);
+  }
+  .progress-text { font-size: 0.85rem; color: var(--bone-dim); }
+  .progress-text b { color: var(--cyan-bright); font-weight: 600; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+  .toolbar {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+    align-items: center;
+  }
+
+  input[type="text"], select {
+    background: var(--bg-panel);
+    border: 1px solid var(--cyan-dim);
+    color: var(--bone);
+    padding: 0.6rem 0.9rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    border-radius: 2px;
+  }
+  input[type="text"]:focus, select:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 1px var(--cyan-faint);
+  }
+  input[type="text"] { flex: 1; min-width: 180px; }
+
+  .filter-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .pill {
+    background: var(--bg-panel);
+    border: 1px solid var(--cyan-dim);
+    color: var(--bone-dim);
+    padding: 0.45rem 0.9rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .pill:hover { border-color: var(--cyan); color: var(--bone); }
+  .pill.active { background: var(--cyan-faint); border-color: var(--cyan); color: var(--cyan-bright); font-weight: 600; }
+
+  .add-btn {
+    background: var(--metal);
+    border: 1px solid var(--cyan-dim);
+    color: var(--bone);
+    padding: 0.6rem 1.1rem;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+  }
+  .add-btn:hover { border-color: var(--cyan); color: var(--cyan-bright); box-shadow: 0 0 8px rgba(95,227,239,0.25); }
+
+  .category {
+    margin-bottom: 2.25rem;
+  }
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--cyan-dim);
+    position: relative;
+  }
+  .category-header::before {
+    content: "";
+    width: 8px; height: 8px;
+    background: var(--cyan);
+    transform: rotate(45deg);
+    box-shadow: 0 0 6px var(--cyan);
+    flex-shrink: 0;
+  }
+  .category-header h2 {
+    font-family: 'Oxanium', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--gold);
+  }
+  .category-count {
+    font-size: 0.75rem;
+    color: var(--bone-dim);
+    background: var(--bg-panel);
+    padding: 0.15rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid var(--cyan-dim);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--cyan-dim);
+    border-left: 3px solid var(--metal-light);
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    position: relative;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  .card:hover { border-left-color: var(--cyan); background: rgba(20,55,64,0.9); box-shadow: 0 0 10px rgba(95,227,239,0.15); }
+  .card.tamed {
+    border-left-color: var(--moss);
+    background: rgba(15,45,35,0.55);
+  }
+  .card.tamed .creature-name { color: var(--bone); }
+  .card.tamed::after {
+    content: "✓";
+    position: absolute;
+    top: 0.6rem;
+    right: 0.7rem;
+    color: var(--moss);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-shadow: 0 0 6px rgba(111,227,154,0.7);
+  }
+
+  .creature-name {
+    font-family: 'Oxanium', sans-serif;
+    font-weight: 500;
+    font-size: 0.98rem;
+    letter-spacing: 0.02em;
+    color: var(--bone-dim);
+    margin: 0 0 0.35rem;
+  }
+  .card.tamed .creature-name { color: var(--bone); }
+
+  .empty-note {
+    color: var(--bone-dim);
+    font-size: 0.85rem;
+    padding: 2rem;
+    text-align: center;
+    border: 1px dashed var(--cyan-dim);
+    border-radius: 2px;
+  }
+
+  .custom-form {
+    display: none;
+    background: var(--bg-panel);
+    border: 1px solid var(--cyan);
+    box-shadow: 0 0 12px rgba(95,227,239,0.15);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .custom-form.open { display: flex; }
+  .custom-form input, .custom-form select { flex: 1; min-width: 140px; }
+  .custom-form button {
+    background: var(--cyan-faint);
+    color: var(--cyan-bright);
+    border: 1px solid var(--cyan);
+    padding: 0.6rem 1.1rem;
+    border-radius: 2px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .custom-form button:hover { box-shadow: 0 0 10px rgba(95,227,239,0.35); }
+
+  .sync-note {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--bone-dim);
+    margin-top: 2rem;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 600px) {
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="header-inner">
+    <div>
+      <h1>Défi <span>tame'em all</span></h1>
+      <div class="subtitle" id="players-label">Chargement...</div>
+    </div>
+    <div class="progress-block">
+      <div class="progress-ring-wrap">
+        <svg width="76" height="76" viewBox="0 0 76 76">
+          <circle class="progress-ring-bg" cx="38" cy="38" r="32"></circle>
+          <circle class="progress-ring-fg" id="ring-fg" cx="38" cy="38" r="32" stroke-dasharray="201" stroke-dashoffset="201"></circle>
+        </svg>
+        <div class="progress-ring-label" id="ring-label">0%</div>
+      </div>
+      <div class="progress-text"><b id="tamed-count">0</b> / <span id="total-count">0</span> tamées</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Rechercher une créature...">
+    <div class="filter-pills" id="filter-pills">
+      <span class="pill active" data-filter="all">Toutes</span>
+      <span class="pill" data-filter="untamed">Non tamées</span>
+      <span class="pill" data-filter="tamed">Tamées</span>
+    </div>
+    <button class="add-btn" id="toggle-add">+ Ajouter une créature</button>
+  </div>
+
+  <div class="custom-form" id="custom-form">
+    <input type="text" id="new-name" placeholder="Nom de la créature">
+    <select id="new-category">
+      <option value="Plaines">Plaines</option>
+      <option value="Forêts">Forêts</option>
+      <option value="Montagnes">Montagnes</option>
+      <option value="Marécages">Marécages</option>
+      <option value="Grottes">Grottes</option>
+      <option value="Aquatique">Aquatique</option>
+      <option value="Aérien">Aérien</option>
+      <option value="Jotunheim (glace)">Jotunheim (glace)</option>
+      <option value="Vanaheim (forêt)">Vanaheim (forêt)</option>
+      <option value="Asgard (champs)">Asgard (champs)</option>
+      <option value="Boss / Spécial">Boss / Spécial</option>
+    </select>
+    <button id="confirm-add">Ajouter</button>
+  </div>
+
+  <div id="categories-container"></div>
+
+  <div class="sync-note">Les données sont partagées entre toi et ton ami — coche une créature et elle apparaît pour les deux.</div>
+
+</div>
+
+<script>
+const CREATURES = [
+{n:"Achatina",c:"Plaines"},{n:"Allosaurus",c:"Plaines"},{n:"Ammonite",c:"Aquatique"},
+{n:"Andrewsarchus",c:"Vanaheim (forêt)"},{n:"Angler",c:"Aquatique"},{n:"Ankylosaurus",c:"Montagnes"},
+{n:"Araneo",c:"Grottes"},{n:"Archaeopteryx",c:"Forêts"},{n:"Argentavis",c:"Aérien"},
+{n:"Arthropluera",c:"Grottes"},{n:"Baryonyx",c:"Marécages"},{n:"Basilisk",c:"Grottes"},
+{n:"Basilosaurus",c:"Aquatique"},{n:"Beelzebufo",c:"Marécages"},{n:"Beyla (Boss)",c:"Boss / Spécial"},
+{n:"Beyla Spawn",c:"Boss / Spécial"},{n:"Brontosaurus",c:"Plaines"},{n:"Broodmother Lysrix (Boss)",c:"Boss / Spécial"},
+{n:"Bulbdog",c:"Grottes"},{n:"Carbonemys",c:"Marécages"},{n:"Carcharodontosaurus",c:"Plaines"},
+{n:"Carnotaurus",c:"Plaines"},{n:"Castoroides",c:"Marécages"},{n:"Chalicotherium",c:"Forêts"},
+{n:"Cnidaria",c:"Aquatique"},{n:"Coelacanth",c:"Aquatique"},{n:"Compy",c:"Forêts"},{n:"Daeodon",c:"Plaines"},
+{n:"Deinonychus",c:"Vanaheim (forêt)"},{n:"Desmodus",c:"Grottes"},{n:"Dilophosaur",c:"Forêts"},
+{n:"Dimetrodon",c:"Marécages"},{n:"Dimorphodon",c:"Aérien"},{n:"Diplocaulus",c:"Aquatique"},
+{n:"Diplodocus",c:"Plaines"},{n:"Dire Bear",c:"Jotunheim (glace)"},{n:"Direwolf",c:"Montagnes"},
+{n:"Dodo",c:"Plaines"},{n:"Doedicurus",c:"Plaines"},{n:"Dragon (Boss)",c:"Boss / Spécial"},
+{n:"Dung Beetle",c:"Plaines"},{n:"Dunkleosteus",c:"Aquatique"},{n:"Electrophorus",c:"Aquatique"},
+{n:"Equus",c:"Plaines"},{n:"Eurypterid",c:"Aquatique"},{n:"Featherlight",c:"Grottes"},
+{n:"Fenrir",c:"Vanaheim (forêt)"},{n:"Fenrisúlfr (Boss)",c:"Boss / Spécial"},{n:"Ferox",c:"Grottes"},
+{n:"Fjordhawk",c:"Vanaheim (forêt)"},{n:"Gacha",c:"Montagnes"},{n:"Gallimimus",c:"Plaines"},
+{n:"Gasbags",c:"Marécages"},{n:"Giant Bee",c:"Forêts"},{n:"Giganotosaurus",c:"Plaines"},
+{n:"Gigantopithecus",c:"Forêts"},{n:"Glowbug",c:"Grottes"},{n:"Glowtail",c:"Grottes"},
+{n:"Griffin",c:"Asgard (champs)"},{n:"Hati & Sköll (Boss)",c:"Boss / Spécial"},{n:"Hesperornis",c:"Aquatique"},
+{n:"Hyaenodon",c:"Forêts"},{n:"Ichthyornis",c:"Aérien"},{n:"Ichthyosaurus",c:"Aquatique"},
+{n:"Iguanodon",c:"Plaines"},{n:"Kairuku",c:"Aquatique"},{n:"Kaprosuchus",c:"Marécages"},
+{n:"Karkinos",c:"Aquatique"},{n:"Kentrosaurus",c:"Forêts"},{n:"Lamprey",c:"Aquatique"},
+{n:"Leech",c:"Marécages"},{n:"Leedsichthys",c:"Aquatique"},{n:"Liopleurodon",c:"Aquatique"},
+{n:"Lystrosaurus",c:"Plaines"},{n:"Maewing",c:"Forêts"},{n:"Magmasaur",c:"Grottes"},
+{n:"Mammoth",c:"Jotunheim (glace)"},{n:"Manta",c:"Aquatique"},{n:"Mantis",c:"Forêts"},
+{n:"Megachelon",c:"Aquatique"},{n:"Megalania",c:"Marécages"},{n:"Megaloceros",c:"Forêts"},
+{n:"Megalodon",c:"Aquatique"},{n:"Megalosaurus",c:"Marécages"},{n:"Meganeura",c:"Marécages"},
+{n:"Megapithecus (Boss)",c:"Boss / Spécial"},{n:"Megatherium",c:"Forêts"},{n:"Mesopithecus",c:"Forêts"},
+{n:"Microraptor",c:"Forêts"},{n:"Mosasaurus",c:"Aquatique"},{n:"Moschops",c:"Plaines"},{n:"Onyc",c:"Grottes"},
+{n:"Otter",c:"Aquatique"},{n:"Oviraptor",c:"Plaines"},{n:"Ovis",c:"Montagnes"},{n:"Pachy",c:"Forêts"},
+{n:"Pachyrhinosaurus",c:"Jotunheim (glace)"},{n:"Paraceratherium",c:"Plaines"},{n:"Parakeet Fish School",c:"Aquatique"},
+{n:"Parasaur",c:"Plaines"},{n:"Pegomastax",c:"Forêts"},{n:"Pelagornis",c:"Aérien"},{n:"Phiomia",c:"Plaines"},
+{n:"Piranha",c:"Aquatique"},{n:"Plesiosaur",c:"Aquatique"},{n:"Procoptodon",c:"Plaines"},
+{n:"Pteranodon",c:"Aérien"},{n:"Pulmonoscorpius",c:"Grottes"},{n:"Purlovia",c:"Grottes"},{n:"Quetzal",c:"Aérien"},
+{n:"Raptor",c:"Plaines"},{n:"Ravager",c:"Grottes"},{n:"Rex",c:"Plaines"},{n:"Rock Drake",c:"Grottes"},
+{n:"Rock Elemental",c:"Montagnes"},{n:"Roll Rat",c:"Grottes"},{n:"Rubble Bear",c:"Montagnes"},
+{n:"Sabertooth",c:"Montagnes"},{n:"Sabertooth Salmon",c:"Aquatique"},{n:"Sarco",c:"Marécages"},
+{n:"Seeker",c:"Grottes"},{n:"Shadowmane",c:"Grottes"},{n:"Shinehorn",c:"Grottes"},
+{n:"Snow Owl",c:"Jotunheim (glace)"},{n:"Spinosaurus",c:"Marécages"},{n:"Stegosaurus",c:"Plaines"},
+{n:"Steinbjörn (Boss)",c:"Boss / Spécial"},{n:"Tapejara",c:"Aérien"},{n:"Terror Bird",c:"Forêts"},
+{n:"Therizinosaurus",c:"Forêts"},{n:"Thorny Dragon",c:"Montagnes"},{n:"Thylacoleo",c:"Forêts"},
+{n:"Titanoboa",c:"Marécages"},{n:"Titanomyrma",c:"Forêts"},{n:"Titanosaur",c:"Plaines"},
+{n:"Triceratops",c:"Plaines"},{n:"Trilobite",c:"Aquatique"},{n:"Troodon",c:"Forêts"},
+{n:"Tropeognathus",c:"Aérien"},{n:"Tusoteuthis",c:"Aquatique"},{n:"Unicorn",c:"Vanaheim (forêt)"},
+{n:"Velonasaur",c:"Marécages"},{n:"Vulture",c:"Aérien"},{n:"Woolly Rhino",c:"Jotunheim (glace)"},
+{n:"Wyvern",c:"Aérien"},{n:"Yeti",c:"Jotunheim (glace)"},{n:"Yutyrannus",c:"Jotunheim (glace)"}
+];
+
+// Déduplique par nom au cas où
+const seen = new Set();
+const CREATURE_LIST = CREATURES.filter(c => {
+  if (seen.has(c.n)) return false;
+  seen.add(c.n);
+  return true;
+});
+
+const CATEGORY_ORDER = ["Plaines","Forêts","Montagnes","Marécages","Grottes","Aquatique","Aérien","Jotunheim (glace)","Vanaheim (forêt)","Asgard (champs)","Boss / Spécial","DLC"];
+
+const FIREBASE_URL = "https://ark-tame-tracker-default-rtdb.europe-west1.firebasedatabase.app/data.json";
+
+let state = {}; // { creatureName: {tamed: bool} }
+let currentFilter = "all";
+let searchTerm = "";
+
+async function loadState() {
+  try {
+    const res = await fetch(FIREBASE_URL);
+    const data = await res.json();
+    state = (data && data.state) ? data.state : {};
+    const customs = (data && data.customCreatures) ? data.customCreatures : [];
+    customs.forEach(c => {
+      if (!CREATURE_LIST.find(x => x.n === c.n)) CREATURE_LIST.push(c);
+    });
+  } catch (e) {
+    console.error("Erreur de chargement", e);
+    state = {};
+  }
+}
+
+async function saveAll() {
+  try {
+    const res = await fetch(FIREBASE_URL);
+    const data = await res.json();
+    const customCreatures = (data && data.customCreatures) ? data.customCreatures : [];
+    await fetch(FIREBASE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state, customCreatures })
+    });
+  } catch (e) {
+    console.error("Erreur de sauvegarde", e);
+  }
+}
+
+async function saveCustom(newCreature) {
+  try {
+    const res = await fetch(FIREBASE_URL);
+    const data = await res.json();
+    const customCreatures = (data && data.customCreatures) ? data.customCreatures : [];
+    customCreatures.push(newCreature);
+    await fetch(FIREBASE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state, customCreatures })
+    });
+  } catch (e) {
+    console.error("Erreur de sauvegarde", e);
+  }
+}
+
+function toggleTame(name) {
+  if (!state[name]) state[name] = { tamed: true };
+  else state[name].tamed = !state[name].tamed;
+  saveAll();
+  render();
+}
+
+function render() {
+  const container = document.getElementById("categories-container");
+  container.innerHTML = "";
+
+  const total = CREATURE_LIST.length;
+  const tamedCount = CREATURE_LIST.filter(c => state[c.n] && state[c.n].tamed).length;
+  document.getElementById("total-count").textContent = total;
+  document.getElementById("tamed-count").textContent = tamedCount;
+  const pct = total > 0 ? Math.round((tamedCount/total)*100) : 0;
+  document.getElementById("ring-label").textContent = pct + "%";
+  const circumference = 201;
+  document.getElementById("ring-fg").style.strokeDashoffset = circumference - (circumference * pct / 100);
+
+  const byCategory = {};
+  CREATURE_LIST.forEach(c => {
+    if (!byCategory[c.c]) byCategory[c.c] = [];
+    byCategory[c.c].push(c);
+  });
+
+  const orderedCats = [...CATEGORY_ORDER, ...Object.keys(byCategory).filter(c => !CATEGORY_ORDER.includes(c))];
+
+  let anyShown = false;
+
+  orderedCats.forEach(cat => {
+    const list = byCategory[cat];
+    if (!list) return;
+
+    let filtered = list.filter(c => {
+      const isTamed = state[c.n] && state[c.n].tamed;
+      if (currentFilter === "tamed" && !isTamed) return false;
+      if (currentFilter === "untamed" && isTamed) return false;
+      if (searchTerm && !c.n.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      return true;
+    });
+
+    if (filtered.length === 0) return;
+    anyShown = true;
+
+    const catTamed = list.filter(c => state[c.n] && state[c.n].tamed).length;
+
+    const section = document.createElement("div");
+    section.className = "category";
+    section.innerHTML = `
+      <div class="category-header">
+        <h2>${cat}</h2>
+        <span class="category-count">${catTamed} / ${list.length}</span>
+      </div>
+      <div class="grid"></div>
+    `;
+    const grid = section.querySelector(".grid");
+
+    filtered.forEach(c => {
+      const s = state[c.n] || {};
+      const card = document.createElement("div");
+      card.className = "card" + (s.tamed ? " tamed" : "");
+      card.innerHTML = `<p class="creature-name">${c.n}</p>`;
+      card.addEventListener("click", () => toggleTame(c.n));
+      grid.appendChild(card);
+    });
+
+    container.appendChild(section);
+  });
+
+  if (!anyShown) {
+    container.innerHTML = '<div class="empty-note">Aucune créature ne correspond à ta recherche.</div>';
+  }
+}
+
+document.getElementById("search").addEventListener("input", (e) => {
+  searchTerm = e.target.value;
+  render();
+});
+
+document.querySelectorAll(".pill").forEach(pill => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    currentFilter = pill.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById("toggle-add").addEventListener("click", () => {
+  document.getElementById("custom-form").classList.toggle("open");
+});
+
+document.getElementById("confirm-add").addEventListener("click", async () => {
+  const name = document.getElementById("new-name").value.trim();
+  const cat = document.getElementById("new-category").value;
+  if (!name) return;
+  if (CREATURE_LIST.find(c => c.n.toLowerCase() === name.toLowerCase())) {
+    alert("Cette créature existe déjà dans la liste.");
+    return;
+  }
+  const newC = { n: name, c: cat };
+  CREATURE_LIST.push(newC);
+  await saveCustom(newC);
+  document.getElementById("new-name").value = "";
+  document.getElementById("custom-form").classList.remove("open");
+  render();
+});
+
+document.getElementById("players-label").textContent = "Progression partagée — coche les créatures que vous avez tamées";
+
+(async () => {
+  await loadState();
+  render();
+})();
+
+setInterval(async () => {
+  await loadState();
+  render();
+}, 15000);
+
+document.addEventListener("visibilitychange", async () => {
+  if (!document.hidden) {
+    await loadState();
+    render();
+  }
+});
+</script>
+
+</body>
+</html>
