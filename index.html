@@ -221,12 +221,37 @@
     background: var(--bg-card);
     border: 1px solid var(--cyan-dim);
     border-left: 3px solid var(--metal-light);
-    padding: 0.9rem 1rem;
+    padding: 0;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
     position: relative;
+    overflow: hidden;
     clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   }
+  .card-img-wrap {
+    width: 100%;
+    height: 100px;
+    background: rgba(6,14,18,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--cyan-dim);
+  }
+  .card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.05) contrast(1.05);
+    opacity: 0.9;
+  }
+  .card-img-wrap .img-fallback {
+    font-family: 'Oxanium', sans-serif;
+    font-size: 1.6rem;
+    color: var(--cyan-dim);
+    opacity: 0.6;
+  }
+  .card-body { padding: 0.75rem 1rem 0.9rem; }
   .card:hover { border-left-color: var(--cyan); background: rgba(20,55,64,0.9); box-shadow: 0 0 10px rgba(95,227,239,0.15); }
   .card.tamed {
     border-left-color: var(--moss);
@@ -236,12 +261,17 @@
   .card.tamed::after {
     content: "✓";
     position: absolute;
-    top: 0.6rem;
-    right: 0.7rem;
+    top: 0.5rem;
+    right: 0.6rem;
     color: var(--moss);
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 1rem;
     text-shadow: 0 0 6px rgba(111,227,154,0.7);
+    z-index: 2;
+    background: rgba(6,14,18,0.6);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
   }
 
   .creature-name {
@@ -421,6 +451,35 @@ const CREATURE_LIST = CREATURES.filter(c => {
 
 const CATEGORY_ORDER = ["Plaines","Forêts","Montagnes","Marécages","Grottes","Aquatique","Aérien","Jotunheim (glace)","Vanaheim (forêt)","Asgard (champs)","Boss / Spécial","DLC"];
 
+const imgCache = new Map();
+
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // enlève les accents
+    .replace(/[()]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function getImagePath(name) {
+  return `img/${slugify(name)}`;
+}
+
+const IMG_EXTENSIONS = ["webp", "png", "jpg", "jpeg"];
+
+function tryNextExtension(imgEl, basePath, attempt) {
+  if (attempt >= IMG_EXTENSIONS.length) {
+    const fallback = document.createElement("span");
+    fallback.className = "img-fallback";
+    fallback.textContent = "🦖";
+    imgEl.replaceWith(fallback);
+    return;
+  }
+  imgEl.onerror = () => tryNextExtension(imgEl, basePath, attempt + 1);
+  imgEl.src = `${basePath}.${IMG_EXTENSIONS[attempt]}`;
+}
+
 const FIREBASE_URL = "https://ark-tame-tracker-default-rtdb.europe-west1.firebasedatabase.app/data.json";
 
 let state = {}; // { creatureName: {tamed: bool} }
@@ -535,7 +594,16 @@ function render() {
       const s = state[c.n] || {};
       const card = document.createElement("div");
       card.className = "card" + (s.tamed ? " tamed" : "");
-      card.innerHTML = `<p class="creature-name">${c.n}</p>`;
+      card.innerHTML = `
+        <div class="card-img-wrap"></div>
+        <div class="card-body"><p class="creature-name">${c.n}</p></div>
+      `;
+      const imgWrap = card.querySelector(".card-img-wrap");
+      const imgEl = document.createElement("img");
+      imgEl.alt = c.n;
+      imgEl.loading = "lazy";
+      imgWrap.appendChild(imgEl);
+      tryNextExtension(imgEl, getImagePath(c.n), 0);
       card.addEventListener("click", () => toggleTame(c.n));
       grid.appendChild(card);
     });
